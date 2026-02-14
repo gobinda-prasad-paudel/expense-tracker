@@ -101,118 +101,289 @@ export default function TransactionsPage() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0)
 
-  async function downloadPDF() {
-    try {
-      const jsPDFModule = await import("jspdf")
-      const jsPDF = jsPDFModule.default
-      await import("jspdf-autotable")
+//   async function downloadPDF() {
+//     try {
+//       const jsPDFModule = await import("jspdf")
+//       const jsPDF = jsPDFModule.default
+//       await import("jspdf-autotable")
 
-      const doc = new jsPDF({ orientation: "landscape" })
-      const userName = user?.fullName ?? "User"
-      const fromDate = dateRange.from || "N/A"
-      const toDate = dateRange.to || "N/A"
+//       const doc = new jsPDF({ orientation: "portrait" })
+//       const userName = user?.fullName ?? "User"
+//       const fromDate = dateRange.from || "N/A"
+//       const toDate = dateRange.to || "N/A"
 
-      // Header
-      doc.setFontSize(16)
-      doc.setFont("helvetica", "bold")
-      doc.text("Expense Tracker App: example.com", 14, 20)
+//       // Header
+//       doc.setFontSize(16)
+//       doc.setFont("helvetica", "bold")
+//       doc.text("Expense Tracker App: https://expensetrack4.netlify.app/", 14, 20)
 
-      doc.setFontSize(11)
-      doc.setFont("helvetica", "normal")
-      doc.text("Electronic Statement", 14, 30)
-      doc.text(`From ${fromDate} to ${toDate}`, doc.internal.pageSize.width - 14, 30, { align: "right" })
+//       doc.setFontSize(11)
+//       doc.setFont("helvetica", "normal")
+//       doc.text("Electronic Statement", 14, 30)
+//       // Add "From "
+// const fromLabel = "From ";
+// const fromLabelWidth = doc.getTextWidth(fromLabel);
 
-      doc.text(`Name: ${userName}`, 14, 40)
+// // Move left so alignment stays right
+// x -= doc.getTextWidth(`From ${fromDate} to ${toDate}`);
+// doc.text(fromLabel, x, y);
 
-      // Calculate opening and closing balance
-      let runningBalance = 0
-      const sortedTxns = [...transactions].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      )
-      const openingBalance = 0
-      let closingBalance = 0
-      for (const t of sortedTxns) {
-        if (t.type === "income") closingBalance += t.amount
-        else closingBalance -= t.amount
-      }
+// x += fromLabelWidth;
 
-      doc.text(
-        `Opening Balance: ${formatNPR(openingBalance)}`,
-        doc.internal.pageSize.width - 14,
-        40,
-        { align: "right" }
-      )
+// // Date (bold)
+// doc.text(fromDate, x, y);
 
-      doc.text("Currency: NPR", 14, 48)
-      doc.text(
-        `Closing Balance: ${formatNPR(closingBalance)}`,
-        doc.internal.pageSize.width - 14,
-        48,
-        { align: "right" }
-      )
+// x += doc.getTextWidth(fromDate + " ");
 
-      doc.setDrawColor(200)
-      doc.line(14, 54, doc.internal.pageSize.width - 14, 54)
+// // "to "
+// doc.text("to ", x, y);
 
-      // Table
-      runningBalance = 0
-      const tableData = sortedTxns.map((t) => {
-        const isIncome = t.type === "income"
-        if (isIncome) runningBalance += t.amount
-        else runningBalance -= t.amount
+// x += doc.getTextWidth("to ");
 
-        return [
-          new Date(t.date).toLocaleDateString(),
-          t.description,
-          isIncome ? "" : `${formatNPR(t.amount)}`,
-          isIncome ? `${formatNPR(t.amount)}` : "",
-          formatNPR(runningBalance),
-        ]
-      })
+// // toDate
+// doc.text(toDate, x, y);
 
-      ;(doc as unknown as Record<string, CallableFunction>).autoTable({
-        startY: 60,
-        head: [["TXN Date", "Description", "Withdraw (Expense)", "Deposit (Income)", "Total Balance"]],
-        body: tableData,
-        theme: "grid",
-        headStyles: {
-          fillColor: [14, 165, 233],
-          textColor: [255, 255, 255],
-          fontStyle: "bold",
-          fontSize: 9,
-        },
-        bodyStyles: {
-          fontSize: 8,
-          textColor: [50, 50, 50],
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245],
-        },
-        columnStyles: {
-          0: { cellWidth: 35 },
-          1: { cellWidth: "auto" },
-          2: { cellWidth: 45, halign: "right" },
-          3: { cellWidth: 45, halign: "right" },
-          4: { cellWidth: 45, halign: "right" },
-        },
-        margin: { left: 14, right: 14 },
-      })
+//       doc.text(`Name: ${userName}`, 14, 40)
 
-      // Summary row
-      const finalY = (doc as unknown as Record<string, number>).lastAutoTable?.finalY ?? 200
-      doc.setFontSize(10)
-      doc.setFont("helvetica", "bold")
-      doc.text(`Total Income: ${formatNPR(totalIncome)}`, 14, finalY + 12)
-      doc.text(`Total Expense: ${formatNPR(totalExpense)}`, 14, finalY + 20)
-      doc.text(`Net Balance: ${formatNPR(closingBalance)}`, 14, finalY + 28)
+//       // Calculate opening and closing balance
+//       let runningBalance = 0
+//       const sortedTxns = [...transactions].sort(
+//         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+//       )
+//       const openingBalance = 0
+//       let closingBalance = 0
+//       for (const t of sortedTxns) {
+//         if (t.type === "income") closingBalance += t.amount
+//         else closingBalance -= t.amount
+//       }
 
-      doc.save(`expense-tracker-statement-${fromDate}-to-${toDate}.pdf`)
-      toast.success("PDF downloaded successfully")
-    } catch (error) {
-      console.error("PDF generation error:", error)
-      toast.error("Failed to generate PDF")
+//       doc.text(
+//         `Opening Balance: ${formatNPR(openingBalance)}`,
+//         doc.internal.pageSize.width - 14,
+//         40,
+//         { align: "right" }
+//       )
+
+//       doc.text("Currency: NPR", 14, 48)
+//       doc.text(
+//         `Closing Balance: ${formatNPR(closingBalance)}`,
+//         doc.internal.pageSize.width - 14,
+//         48,
+//         { align: "right" }
+//       )
+
+//       doc.setDrawColor(200)
+//       doc.line(14, 54, doc.internal.pageSize.width - 14, 54)
+
+//       // Table
+//       runningBalance = 0
+//       const tableData = sortedTxns.map((t) => {
+//         const isIncome = t.type === "income"
+//         if (isIncome) runningBalance += t.amount
+//         else runningBalance -= t.amount
+
+//         return [
+//           new Date(t.date).toLocaleDateString(),
+//           t.description,
+//           isIncome ? "" : `${formatNPR(t.amount)}`,
+//           isIncome ? `${formatNPR(t.amount)}` : "",
+//           formatNPR(runningBalance),
+//         ]
+//       })
+
+//       ;(doc as unknown as Record<string, CallableFunction>).autoTable({
+//         startY: 60,
+//         head: [["TXN Date", "Description", "Withdraw (Expense)", "Deposit (Income)", "Total Balance"]],
+//         body: tableData,
+//         theme: "grid",
+//         headStyles: {
+//           fillColor: [14, 165, 233],
+//           textColor: [255, 255, 255],
+//           fontStyle: "bold",
+//           fontSize: 9,
+//         },
+//         bodyStyles: {
+//           fontSize: 8,
+//           textColor: [50, 50, 50],
+//         },
+//         alternateRowStyles: {
+//           fillColor: [245, 245, 245],
+//         },
+//         columnStyles: {
+//           0: { cellWidth: 35 },
+//           1: { cellWidth: "auto" },
+//           2: { cellWidth: 45, halign: "right" },
+//           3: { cellWidth: 45, halign: "right" },
+//           4: { cellWidth: 45, halign: "right" },
+//         },
+//         margin: { left: 14, right: 14 },
+//       })
+
+//       // Summary row
+//       const finalY = (doc as unknown as Record<string, number>).lastAutoTable?.finalY ?? 200
+//       doc.setFontSize(10)
+//       doc.setFont("helvetica", "bold")
+//       doc.text(`Total Income: ${formatNPR(totalIncome)}`, 14, finalY + 12)
+//       doc.text(`Total Expense: ${formatNPR(totalExpense)}`, 14, finalY + 20)
+//       doc.text(`Net Balance: ${formatNPR(closingBalance)}`, 14, finalY + 28)
+
+//       doc.save(`expense-tracker-statement-${fromDate}-to-${toDate}.pdf`)
+//       toast.success("PDF downloaded successfully")
+//     } catch (error) {
+//       console.error("PDF generation error:", error)
+//       toast.error("Failed to generate PDF")
+//     }
+//   }
+
+async function downloadPDF() {
+  try {
+    const jsPDFModule = await import("jspdf");
+    const jsPDF = jsPDFModule.default;
+    await import("jspdf-autotable");
+
+    const doc = new jsPDF({ orientation: "portrait" });
+    const userName = user?.fullName ?? "User";
+    const fromDate = dateRange.from || "N/A";
+    const toDate = dateRange.to || "N/A";
+
+    // Header
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      "Expense Tracker App: https://expensetrack4.netlify.app/",
+      14,
+      20
+    );
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("Electronic Statement", 14, 30);
+
+    // "From … to …" right-aligned with bold
+    const pageWidth = doc.internal.pageSize.width;
+    const y = 30;
+    let x = pageWidth - 14;
+
+    doc.setFont("helvetica", "bold");
+
+    const fromLabel = "From ";
+    const toLabel = " to ";
+
+    // Calculate total width
+    const totalText = `${fromLabel}${fromDate}${toLabel}${toDate}`;
+    const totalWidth = doc.getTextWidth(totalText);
+
+    // Start position for right alignment
+    x -= totalWidth;
+
+    doc.text(fromLabel, x, y);
+    x += doc.getTextWidth(fromLabel);
+
+    doc.text(fromDate, x, y);
+    x += doc.getTextWidth(fromDate);
+
+    doc.text(toLabel, x, y);
+    x += doc.getTextWidth(toLabel);
+
+    doc.text(toDate, x, y);
+
+    // User name
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${userName}`, 14, 40);
+
+    // Opening / Closing balance
+    let runningBalance = 0;
+    const sortedTxns = [...transactions].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    const openingBalance = 0;
+    let closingBalance = 0;
+    for (const t of sortedTxns) {
+      if (t.type === "income") closingBalance += t.amount;
+      else closingBalance -= t.amount;
     }
+
+    doc.text(
+      `Opening Balance: ${formatNPR(openingBalance)}`,
+      pageWidth - 14,
+      40,
+      { align: "right" }
+    );
+
+    doc.text("Currency: NPR", 14, 48);
+    doc.text(
+      `Closing Balance: ${formatNPR(closingBalance)}`,
+      pageWidth - 14,
+      48,
+      { align: "right" }
+    );
+
+    // Divider line
+    doc.setDrawColor(200);
+    doc.line(14, 54, pageWidth - 14, 54);
+
+    // Table
+    runningBalance = 0;
+    const tableData = sortedTxns.map((t) => {
+      const isIncome = t.type === "income";
+      if (isIncome) runningBalance += t.amount;
+      else runningBalance -= t.amount;
+
+      return [
+        new Date(t.date).toLocaleDateString(),
+        t.description,
+        isIncome ? "" : `${formatNPR(t.amount)}`,
+        isIncome ? `${formatNPR(t.amount)}` : "",
+        formatNPR(runningBalance),
+      ];
+    });
+
+    (doc as unknown as Record<string, CallableFunction>).autoTable({
+      startY: 60,
+      head: [
+        ["TXN Date", "Description", "Withdraw (Expense)", "Deposit (Income)", "Total Balance"],
+      ],
+      body: tableData,
+      theme: "grid",
+      headStyles: {
+        fillColor: [14, 165, 233],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 9,
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [50, 50, 50],
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: "auto" },
+        2: { cellWidth: 45, halign: "right" },
+        3: { cellWidth: 45, halign: "right" },
+        4: { cellWidth: 45, halign: "right" },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Summary row
+    const finalY = (doc as unknown as Record<string, number>).lastAutoTable?.finalY ?? 200;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Income: ${formatNPR(totalIncome)}`, 14, finalY + 12);
+    doc.text(`Total Expense: ${formatNPR(totalExpense)}`, 14, finalY + 20);
+    doc.text(`Net Balance: ${formatNPR(closingBalance)}`, 14, finalY + 28);
+
+    doc.save(`expense-tracker-statement-${fromDate}-to-${toDate}.pdf`);
+    toast.success("PDF downloaded successfully");
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    toast.error("Failed to generate PDF");
   }
+}
+
 
   return (
     <div className="mx-auto max-w-5xl">
