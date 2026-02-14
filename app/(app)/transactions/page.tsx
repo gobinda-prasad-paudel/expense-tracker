@@ -120,28 +120,7 @@ export default function TransactionsPage() {
       doc.setFontSize(11)
       doc.setFont("helvetica", "normal")
       doc.text("Electronic Statement", 14, 30)
-      // Add "From "
-const fromLabel = "From ";
-const fromLabelWidth = doc.getTextWidth(fromLabel);
-
-// Move left so alignment stays right
-x -= doc.getTextWidth(`From ${fromDate} to ${toDate}`);
-doc.text(fromLabel, x, y);
-
-x += fromLabelWidth;
-
-// Date (bold)
-doc.text(fromDate, x, y);
-
-x += doc.getTextWidth(fromDate + " ");
-
-// "to "
-doc.text("to ", x, y);
-
-x += doc.getTextWidth("to ");
-
-// toDate
-doc.text(toDate, x, y);
+      doc.text(`From ${fromDate} to ${toDate}`, doc.internal.pageSize.width - 14, 30, { align: "right" })
 
       doc.text(`Name: ${userName}`, 14, 40)
 
